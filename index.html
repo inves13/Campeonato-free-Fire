@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Plataforma de Investimento</title>
+
+<!-- Fonte moderna + Ícones -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<!-- QRCode lib (gera o QR do PIX) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+  :root{
+    --bg:#f5f7fb;
+    --card:#ffffff;
+    --text:#1f2937;
+    --muted:#6b7280;
+    --green:#16a34a;     /* verde principal */
+    --green-dark:#0f7a37;/* hover / header */
+    --line:#e5e7eb;
+    --success:#22c55e;
+    --danger:#ef4444;
+    --radius:16px;
+    --shadow:0 8px 24px rgba(0,0,0,.08);
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family:'Poppins',sans-serif; background:var(--bg); color:var(--text);
+  }
+
+  header{
+    background:linear-gradient(180deg, var(--green-dark), #0c5c2a);
+    color:#fff; padding:22px 18px; text-align:center;
+    border-bottom-left-radius:24px; border-bottom-right-radius:24px; box-shadow:var(--shadow);
+    position:sticky; top:0; z-index:2;
+  }
+  header h1{margin:0 0 6px 0; font-size:20px; font-weight:600}
+  header p{margin:0; font-size:14px; opacity:.95}
+
+  main{padding:18px; padding-bottom:90px; max-width:800px; margin:0 auto;}
+
+  .card{
+    background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow);
+    padding:16px; margin-bottom:14px;
+  }
+
+  h2{font-size:18px; color:var(--green-dark); margin:10px 0 12px}
+  h3{font-size:16px; color:var(--text); margin:4px 0 10px}
+
+  input, select, button{
+    width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--line); font-size:15px;
+    background:#fff; color:var(--text);
+  }
+  input:focus, select:focus{outline:2px solid rgba(34,197,94,.25); border-color:var(--success)}
+  .row{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  @media (max-width:480px){ .row{grid-template-columns:1fr} }
+
+  .btn{
+    background:var(--green); color:#fff; border:none; font-weight:600; cursor:pointer; transition:.2s;
+    box-shadow:0 6px 16px rgba(22,163,74,.25);
+  }
+  .btn:hover{ background:var(--green-dark) }
+  .btn-outline{ background:#fff; color:var(--green); border:1px solid var(--green); }
+  .btn-outline:hover{ color:#fff; background:var(--green) }
+
+  .history{ max-height:230px; overflow:auto; display:grid; gap:8px; }
+  .history .item{ background:#f8fafc; border:1px dashed var(--line); padding:10px; border-radius:12px; font-size:14px }
+
+  .auth{ max-width:460px; margin:0 auto; padding:14px 18px; }
+  .auth .title{font-weight:600; color:var(--green-dark); margin-bottom:8px}
+  .divider{ height:1px; background:var(--line); margin:14px 0 }
+
+  /* Nav inferior */
+  nav{
+    position:fixed; bottom:0; left:0; right:0; z-index:3;
+    background:#0f4726; /* base escura para dar contraste */
+    backdrop-filter:saturate(140%) blur(6px);
+    border-top:1px solid rgba(255,255,255,.08);
+  }
+  .nav-wrap{
+    max-width:860px; margin:0 auto; display:flex; justify-content:space-around; gap:4px; padding:8px 10px;
+  }
+  nav button{
+    background:none; border:none; color:#e5f7ec; font-size:12px; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:4px; padding:6px 10px; border-radius:12px; transition:.15s;
+  }
+  nav button i{ font-size:18px; }
+  nav button.active, nav button:hover{ background:rgba(34,197,94,.18); color:#fff; transform:translateY(-1px) }
+
+  section{ display:none; }
+  section.active{ display:block; }
+
+  /* PIX */
+  .pix-container{ text-align:center }
+  .pix-grid{ display:grid; grid-template-columns:1fr; gap:12px }
+  .pix-code{
+    background:#f8fafc; border:1px solid var(--line); padding:12px; border-radius:12px; font-size:14px; word-break:break-all; text-align:left
+  }
+  .qr-box{ display:flex; align-items:center; justify-content:center; padding:12px; background:#fff; border:1px solid var(--line); border-radius:12px }
+  .muted{ color:var(--muted); font-size:13px }
+
+  /* Toast */
+  .toast{
+    position:fixed; bottom:80px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:#062e17; color:#d1fae5; padding:10px 14px; border-radius:12px; box-shadow:var(--shadow);
+    opacity:0; pointer-events:none; transition:.25s; z-index:5; font-size:14px;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto }
+
+  /* Live iframe */
+  .live-frame{ width:100%; height:520px; border:none; border-radius:14px; background:#000; }
+
+  /* Labels */
+  .label{ font-size:13px; color:var(--muted); margin-top:6px }
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="authContainer" class="auth">
+  <div class="card">
+    <div class="title">Cadastro</div>
+    <div class="row">
+      <input type="text" id="registerFullName" placeholder="Nome completo">
+      <input type="text" id="registerPlayerName" placeholder="Nome do jogador">
+    </div>
+    <div class="row">
+      <input type="text" id="registerPlayerID" placeholder="ID do jogador">
+      <input type="text" id="registerPhone" placeholder="Telefone">
+    </div>
+    <input type="email" id="registerEmail" placeholder="Email">
+    <div class="row">
+      <input type="password" id="registerPassword" placeholder="Senha">
+      <button class="btn" onclick="register()">Cadastrar</button>
+    </div>
+    <div class="divider"></div>
+    <div class="title">Login</div>
+    <input type="email" id="loginEmail" placeholder="Email">
+    <div class="row">
+      <input type="password" id="loginPassword" placeholder="Senha">
+      <button class="btn" onclick="login()">Entrar</button>
+    </div>
+    <div class="label">⚠️ Seus dados são protegidos. Use um email válido.</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="mainContainer" style="display:none;">
+  <header>
+    <h1>Bem-vindo, <span id="headerName"></span></h1>
+    <p>Saldo da Carteira: R$ <span id="saldo">0,00</span></p>
+  </header>
+
+  <main>
+    <!-- HOME -->
+    <section id="home" class="active">
+      <h2>Home</h2>
+      <div class="card">
+        <div class="row">
+          <p><strong>Nome do jogador:</strong><br><span id="homePlayerName" class="muted">—</span></p>
+          <p><strong>ID do jogador:</strong><br><span id="homePlayerID" class="muted">—</span></p>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Assistir à Live</h3>
+        <button class="btn" onclick="abrirLive()"><i class="fa-solid fa-video"></i> &nbsp;Ir para Live</button>
+      </div>
+    </section>
+
+    <!-- PERFIL -->
+    <section id="perfil">
+      <h2>Perfil do Jogador</h2>
+      <div class="card">
+        <p><strong>Nome completo:</strong> <span id="profileFullName" class="muted">—</span></p>
+        <p><strong>Nome do jogador:</strong> <span id="profilePlayerName" class="muted">—</span></p>
+        <p><strong>ID do jogador:</strong> <span id="profilePlayerID" class="muted">—</span></p>
+        <p><strong>Telefone:</strong> <span id="profilePhone" class="muted">—</span></p>
+        <p><strong>Email:</strong> <span id="profileEmail" class="muted">—</span></p>
+      </div>
+    </section>
+
+    <!-- CARTEIRA -->
+    <section id="carteira">
+      <h2>Carteira</h2>
+      <div class="card">
+        <p>Saldo atual: <strong>R$ <span id="carteiraSaldo">0,00</span></strong></p>
+      </div>
+      <h3>Histórico</h3>
+      <div id="historico" class="history"></div>
+    </section>
+
+    <!-- DEPÓSITO (PIX) -->
+    <section id="deposito">
+      <h2>Depósito</h2>
+      <div class="card pix-container">
+        <p class="muted">Escaneie o QR Code ou copie o código para pagar via PIX:</p>
+
+        <div class="qr-box"><div id="qrcode"></div></div>
+
+        <div class="pix-grid">
+          <div class="pix-code" id="pixCode"></div>
+          <div class="row">
+            <button class="btn" onclick="copiarPIX()"><i class="fa-regular fa-copy"></i> &nbsp;Copiar código</button>
+            <button class="btn-outline" onclick="sharePIX()"><i class="fa-solid fa-share-from-square"></i> &nbsp;Compartilhar</button>
+          </div>
+        </div>
+
+        <p class="label">Após o pagamento, o depósito é confirmado manualmente pelo admin.</p>
+      </div>
+    </section>
+
+    <!-- RETIRADA -->
+    <section id="retirada">
+      <h2>Retirada</h2>
+      <div class="card">
+        <input type="text" id="nomeSaque" placeholder="Nome completo">
+        <select id="tipoChave">
+          <option value="">Tipo de chave</option>
+          <option value="email">Email</option>
+          <option value="cpf">CPF</option>
+          <option value="telefone">Telefone</option>
+        </select>
+        <input type="text" id="chavePIX" placeholder="Chave PIX">
+        <input type="number" id="valorSaque" placeholder="Valor (50-500)">
+        <button class="btn" onclick="solicitarSaque()"><i class="fa-solid fa-hand-holding-dollar"></i> &nbsp;Solicitar saque</button>
+      </div>
+      <h3>Histórico de Saques</h3>
+      <div id="historicoSaque" class="history"></div>
+    </section>
+
+    <!-- LIVE -->
+    <section id="live">
+      <h2>Live Free Fire</h2>
+      <iframe class="live-frame" src="campeonato.html"></iframe>
+    </section>
+  </main>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-wrap">
+      <button data-target="home" class="active"><i class="fas fa-house"></i><span>Home</span></button>
+      <button data-target="perfil"><i class="fas fa-user"></i><span>Perfil</span></button>
+      <button data-target="carteira"><i class="fas fa-wallet"></i><span>Carteira</span></button>
+      <button data-target="deposito"><i class="fas fa-money-bill-wave"></i><span>Depósito</span></button>
+      <button data-target="retirada"><i class="fas fa-hand-holding-dollar"></i><span>Retirada</span></button>
+      <button data-target="live"><i class="fas fa-video"></i><span>Live</span></button>
+    </div>
+  </nav>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast">✅ Copiado com sucesso!</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+/* ========= CONFIG ========= */
+const PIX_PAYLOAD = "00020126850014br.gov.bcb.pix01367afe98b1-ad17-4884-be4d-9a77d0d107ca0223campeonato de free Fire52040000530398654045.005802BR5919Luis Nunes de Jesus6009Sao Paulo610901227-20062230519daqr7277131494591136304B771";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCSb_MpiKXQjPsImNp8uJbzhg5-Dflv42o",
+  authDomain: "campeonato-free-fire.firebaseapp.com",
+  databaseURL: "https://campeonato-free-fire-default-rtdb.firebaseio.com",
+  projectId: "campeonato-free-fire",
+  storageBucket: "campeonato-free-fire.firebasestorage.app",
+  messagingSenderId: "930462286176",
+  appId: "1:930462286176:web:f1907eed65a55fba625e05",
+  measurementId: "G-QMFPH46V6X"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.database();
+
+/* ========= STATE ========= */
+let saldo = 0;
+let historicoDeposito = [];
+let historicoSaque    = [];
+
+/* ========= UI HELPERS ========= */
+function toast(msg="Ação realizada!"){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(()=> el.classList.remove('show'), 2400);
+}
+
+function moedaBR(v){
+  try{
+    return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+  }catch(e){ return `R$ ${Number(v||0).toFixed(2)}`.replace('.',',') }
+}
+
+/* ========= NAV / SECTIONS ========= */
+const nav = document.querySelector('nav');
+nav.addEventListener('click', (e)=>{
+  const btn = e.target.closest('button[data-target]');
+  if(!btn) return;
+  showSection(btn.dataset.target);
+});
+function showSection(id){
+  document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  const activeBtn = document.querySelector(`nav button[data-target="${id}"]`);
+  if(activeBtn) activeBtn.classList.add('active');
+}
+function abrirLive(){ showSection('live'); }
+
+/* ========= PIX (QR + COPIAR + SHARE) ========= */
+function setupPIX(){
+  document.getElementById('pixCode').textContent = PIX_PAYLOAD;
+
+  const qrContainer = document.getElementById("qrcode");
+  qrContainer.innerHTML = "";
+  new QRCode(qrContainer, {
+    text: PIX_PAYLOAD,
+    width: 200, height: 200, correctLevel: QRCode.CorrectLevel.M
+  });
+}
+function copiarPIX(){
+  const text = PIX_PAYLOAD;
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(text).then(()=> toast("✅ Código PIX copiado!"));
+  }else{
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); toast("✅ Código PIX copiado!"); }catch{ alert('Não foi possível copiar. Copie manualmente.'); }
+    document.body.removeChild(ta);
+  }
+}
+function sharePIX(){
+  if(navigator.share){
+    navigator.share({title:"PIX", text:"Código PIX para pagamento:", url:undefined})
+      .then(()=> navigator.clipboard.writeText(PIX_PAYLOAD).then(()=> toast("✅ Código PIX copiado para compartilhar!")))
+      .catch(()=> navigator.clipboard.writeText(PIX_PAYLOAD).then(()=> toast("✅ Copiado!")));
+  }else{
+    navigator.clipboard.writeText(PIX_PAYLOAD).then(()=> toast("✅ Código PIX copiado!"));
+  }
+}
+
+/* ========= AUTH ========= */
+function register(){
+  const fullName  = document.getElementById('registerFullName').value.trim();
+  const playerName= document.getElementById('registerPlayerName').value.trim();
+  const playerID  = document.getElementById('registerPlayerID').value.trim();
+  const phone     = document.getElementById('registerPhone').value.trim();
+  const email     = document.getElementById('registerEmail').value.trim();
+  const password  = document.getElementById('registerPassword').value;
+
+  if(!fullName || !playerName || !playerID || !phone || !email || !password){
+    alert('Preencha todos os campos!'); return;
+  }
+  auth.createUserWithEmailAndPassword(email, password).then(cred=>{
+    const uid = cred.user.uid;
+    return db.ref('usuarios/'+uid).set({
+      nome: fullName, playerName, idJogo: playerID, telefone: phone, email,
+      saldo: 0, depositos:{}, saques:{}
+    }).then(()=>{
+      toast("🎉 Cadastro realizado!");
+      document.getElementById('authContainer').style.display='none';
+      document.getElementById('mainContainer').style.display='block';
+      loadUserData(uid);
+    });
+  }).catch(err=> alert(err.message));
+}
+
+function login(){
+  const email    = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  if(!email || !password){ alert('Preencha todos os campos!'); return; }
+  auth.signInWithEmailAndPassword(email, password).then(cred=>{
+    document.getElementById('authContainer').style.display='none';
+    document.getElementById('mainContainer').style.display='block';
+    loadUserData(cred.user.uid);
+  }).catch(err=> alert(err.message));
+}
+
+auth.onAuthStateChanged(user=>{
+  if(user){
+    document.getElementById('authContainer').style.display='none';
+    document.getElementById('mainContainer').style.display='block';
+    loadUserData(user.uid);
+  }
+});
+
+/* ========= DATA BIND ========= */
+function loadUserData(uid){
+  db.ref('usuarios/'+uid).once('value').then(snap=>{
+    if(!snap.exists()) { alert("Usuário não encontrado!"); return; }
+    const u = snap.val();
+
+    document.getElementById('headerName').textContent = u.nome || '';
+    document.getElementById('homePlayerName').textContent = u.playerName || '';
+    document.getElementById('homePlayerID').textContent   = u.idJogo || '';
+    document.getElementById('profileFullName').textContent= u.nome || '';
+    document.getElementById('profilePlayerName').textContent = u.playerName || '';
+    document.getElementById('profilePlayerID').textContent   = u.idJogo || '';
+    document.getElementById('profilePhone').textContent      = u.telefone || '';
+    document.getElementById('profileEmail').textContent      = u.email || '';
+
+    saldo = Number(u.saldo||0);
+    historicoDeposito = u.depositos ? Object.values(u.depositos).map(dep=>`Depósito: ${moedaBR(dep.valor)} — ${dep.status}`) : [];
+    historicoSaque    = u.saques    ? Object.values(u.saques).map(saq=>`Saque: ${moedaBR(saq.valor)} — ${saq.status}`) : [];
+
+    atualizarTela();
+    setupPIX(); // garante PIX renderizado quando logar
+  });
+}
+
+function solicitarSaque(){
+  const nome  = document.getElementById('nomeSaque').value.trim();
+  const tipo  = document.getElementById('tipoChave').value;
+  const chave = document.getElementById('chavePIX').value.trim();
+  const valor = parseFloat(document.getElementById('valorSaque').value);
+
+  if(!nome || !tipo || !chave || isNaN(valor)){ alert("Preencha todos os campos corretamente."); return; }
+  if(valor < 50 || valor > 500){ alert("O valor deve ser entre R$50 e R$500."); return; }
+
+  const user = auth.currentUser;
+  if(!user){ alert("Usuário não logado"); return; }
+  const uid = user.uid;
+
+  db.ref('usuarios/'+uid+'/saldo').transaction(balance=>{
+    if((balance||0) < valor){ alert("Saldo insuficiente"); return balance; }
+    return (balance||0)-valor;
+  }, (error, committed, snap)=>{
+    if(error) { alert("Erro ao processar saque"); return; }
+    if(committed){
+      saldo = Number(snap.val()||0);
+      const novoSaque = {nome, tipo, chave, valor, status:"Aguardando", date:new Date().toISOString()};
+      db.ref('usuarios/'+uid+'/saques').push(novoSaque);
+      historicoSaque.push(`Saque: ${moedaBR(valor)} — Aguardando`);
+      atualizarTela();
+      document.getElementById('nomeSaque').value='';
+      document.getElementById('tipoChave').value='';
+      document.getElementById('chavePIX').value='';
+      document.getElementById('valorSaque').value='';
+      toast("📩 Solicitação enviada!");
+    }
+  });
+}
+
+function atualizarTela(){
+  document.getElementById('saldo').textContent = moedaBR(saldo).replace('R$','').trim();
+  document.getElementById('carteiraSaldo').textContent = moedaBR(saldo).replace('R$','').trim();
+  document.getElementById('historico').innerHTML = historicoDeposito.map(t=>`<div class="item">${t}</div>`).join('') || '<div class="muted">Sem movimentos ainda.</div>';
+  document.getElementById('historicoSaque').innerHTML = historicoSaque.map(t=>`<div class="item">${t}</div>`).join('') || '<div class="muted">Nenhum saque solicitado.</div>';
+}
+
+/* ========= INIT ========= */
+document.addEventListener('DOMContentLoaded', ()=>{
+  // estado inicial do PIX (antes do login, para visual imediato se quiser testar visual)
+  setupPIX();
+});
+</script>
+</body>
+</html>
