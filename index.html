@@ -522,6 +522,7 @@ auth.onAuthStateChanged(user=>{
 });
 
 /* ========= DATA BIND / LOAD ========= */
+/* ========== ATENÇÃO: loadUserData substituído conforme seu trecho ========= */
 function loadUserData(uid){
   showLoading(true);
   currentUID = uid;
@@ -531,7 +532,7 @@ function loadUserData(uid){
     const u = snap.val();
     currentUserData = u;
 
-    // Profile bindings
+    // dados básicos
     document.getElementById('headerName').textContent = u.nome || '';
     document.getElementById('homePlayerName').textContent = u.playerName || '';
     document.getElementById('homePlayerID').textContent   = u.idJogo || '';
@@ -541,42 +542,18 @@ function loadUserData(uid){
     document.getElementById('profilePhone').textContent      = u.telefone || '';
     document.getElementById('profileEmail').textContent      = u.email || '';
 
-    // avatar (if stored)
-    if(u.avatarUrl){
-      const av = document.getElementById('userAvatar');
-      av.src = u.avatarUrl; av.style.display='inline-block';
-    } else {
-      document.getElementById('userAvatar').style.display = 'none';
-    }
-
+    // saldo
     saldo = Number(u.saldo||0);
+    document.getElementById('saldo').textContent = moedaBR(saldo);
+    document.getElementById('carteiraSaldo').textContent = moedaBR(saldo);
 
-    // prepare historics with date
-    historicoDeposito = u.depositos ? Object.entries(u.depositos).map(([k,dep])=>{
-      const date = dep.date ? new Date(dep.date) : null;
-      const dt = date ? `<br><small class="small-muted">${date.toLocaleString()}</small>` : '';
-      return { text:`Depósito: ${moedaBR(dep.valor)} — ${dep.status}${dt}`, key:k, raw:dep };
-    }) : [];
-    historicoSaque = u.saques ? Object.entries(u.saques).map(([k,saq])=>{
-      const date = saq.date ? new Date(saq.date) : null;
-      const dt = date ? `<br><small class="small-muted">${date.toLocaleString()}</small>` : '';
-      return { text:`Saque: ${moedaBR(saq.valor)} — ${saq.status}${dt}`, key:k, raw:saq };
-    }) : [];
-
-    // ensure inscricao property available on currentUserData for later logic
-    currentUserData.inscricao = u.inscricao || null;
-
-    atualizarTela();
-
-    // show/hide admin nav and admin section, but DO NOT fetch pendências aqui (lazy)
-    const adminNavBtn = document.querySelector('nav button[data-target="admin"]');
-    if(u.isAdmin){
-      document.getElementById('admin').style.display = 'block';
-      if(adminNavBtn) adminNavBtn.style.display = 'flex';
-      adminLoaded = false; // reset so pendências carrega só quando abrir Admin
+    // inscrição
+    if(u.inscricao === true){
+      document.getElementById('statusInscricao').textContent = "✅ Inscrito";
+      document.getElementById('profileInscricao').textContent = "✅ Inscrito";
     }else{
-      document.getElementById('admin').style.display = 'none';
-      if(adminNavBtn) adminNavBtn.style.display = 'none';
+      document.getElementById('statusInscricao').textContent = "❌ Não inscrito";
+      document.getElementById('profileInscricao').textContent = "❌ Não inscrito";
     }
   }).catch(err=>{
     showLoading(false);
@@ -608,64 +585,71 @@ function atualizarTela(){
     const stat = document.getElementById('statusInscricao');
     const profileStat = document.getElementById('profileInscricao');
 
-    if(currentUserData && currentUserData.inscricao && currentUserData.inscricao.status === 'Comprada'){
-      const dateISO = currentUserData.inscricao.date;
-      const disp = dateISO ? new Date(dateISO).toLocaleString() : currentUserData.inscricao.date || '';
-      if(btn) btn.style.display = 'none';
-      if(stat) stat.innerHTML = `✅ Inscrição realizada em ${disp}`;
-      if(profileStat) profileStat.innerHTML = `✅ ${disp}`;
-    }else{
-      if(btn) btn.style.display = 'inline-block';
-      if(stat) stat.innerHTML = '❌ Não inscrito';
-      if(profileStat) profileStat.innerHTML = '❌ Não inscrito';
+    // Ajustado para suportar ambos os formatos: boolean true OR objeto {status, date}
+    if(currentUserData){
+      if(currentUserData.inscricao === true){
+        if(btn) btn.style.display = 'none';
+        if(stat) stat.textContent = '✅ Inscrito';
+        if(profileStat) profileStat.textContent = '✅ Inscrito';
+      } else if (currentUserData.inscricao && currentUserData.inscricao.status === 'Comprada'){
+        const dateISO = currentUserData.inscricao.date;
+        const disp = dateISO ? new Date(dateISO).toLocaleString() : currentUserData.inscricao.date || '';
+        if(btn) btn.style.display = 'none';
+        if(stat) stat.innerHTML = `✅ Inscrição realizada em ${disp}`;
+        if(profileStat) profileStat.innerHTML = `✅ ${disp}`;
+      } else {
+        if(btn) btn.style.display = 'inline-block';
+        if(stat) stat.innerHTML = '❌ Não inscrito';
+        if(profileStat) profileStat.innerHTML = '❌ Não inscrito';
+      }
     }
   }catch(e){
     console.warn('Erro atualizando UI de inscrição', e);
   }
 }
 
-/* ========= INSCRIÇÃO (R$5) ========= */
+/* ========= INSCRIÇÃO ========== */
+/* Função substituída pelo seu trecho (grava inscricao=true e dataInscricao) */
 function comprarInscricao(){
-  if(!currentUID){ alert('Usuário não logado'); return; }
-  if(currentUserData && currentUserData.inscricao && currentUserData.inscricao.status === 'Comprada'){
-    toast('⚠️ Você já realizou a inscrição.');
+  if(!currentUID || !currentUserData){
+    alert("Faça login primeiro.");
+     return;
+  }
+  if(currentUserData.inscricao === true){
+    toast("✅ Você já está inscrito!");
     return;
   }
+
+  // verificar saldo suficiente
   if(saldo < 5){
-    toast('❌ Saldo insuficiente para inscrição (R$5,00).'); return;
+    toast("❌ Saldo insuficiente. Faça um depósito.");
+    return;
   }
 
-  showLoading(true);
-  const uid = currentUID;
-  // transaction para evitar condições de corrida no saldo
-  db.ref('usuarios/'+uid+'/saldo').transaction(balance => {
-    if((balance||0) < 5){
-      return balance; // abortar: saldo insuficiente
-    }
-    return (balance||0) - 5;
-  }, (err, committed, snap) => {
-    showLoading(false);
-    if(err){
-      alert('Erro ao processar inscrição: ' + err.message);
-      return;
-    }
-    if(!committed){
-      toast('❌ Saldo insuficiente para inscrição.');
-      return;
-    }
-    // saldo atualizado com sucesso no DB
-    saldo = Number(snap.val()||0);
-    const inscricaoObj = { status: 'Comprada', date: new Date().toISOString() };
-    db.ref('usuarios/'+uid+'/inscricao').set(inscricaoObj).then(()=>{
-      // atualiza o objeto local e UI
-      if(!currentUserData) currentUserData = {};
-      currentUserData.inscricao = inscricaoObj;
-      atualizarTela();
-      toast('✅ Inscrição comprada com sucesso!');
-    }).catch(e=>{
-      alert('Erro ao salvar inscrição: ' + e.message);
-      // (Opcional) você poderia estornar aqui se quiser
-    });
+  // descontar do saldo e gravar no banco
+  const novoSaldo = saldo - 5;
+  const dataInscricao = new Date().toISOString();
+
+  // atualizar no Firebase
+  const updates = {};
+  updates['usuarios/'+currentUID+'/saldo'] = novoSaldo;
+  updates['usuarios/'+currentUID+'/inscricao'] = true;
+  updates['usuarios/'+currentUID+'/dataInscricao'] = dataInscricao;
+
+  db.ref().update(updates).then(()=>{
+    saldo = novoSaldo;
+    currentUserData.saldo = novoSaldo;
+    currentUserData.inscricao = true;
+    currentUserData.dataInscricao = dataInscricao;
+
+    document.getElementById('saldo').textContent = moedaBR(saldo);
+    document.getElementById('carteiraSaldo').textContent = moedaBR(saldo);
+    document.getElementById('statusInscricao').textContent = "✅ Inscrito";
+    document.getElementById('profileInscricao').textContent = "✅ Inscrito";
+
+    toast("🎟️ Inscrição realizada com sucesso!");
+  }).catch(err=>{
+    alert("Erro ao registrar inscrição: "+err.message);
   });
 }
 
