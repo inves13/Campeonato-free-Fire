@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Campeonato Free Fire - Live</title>
+  <title>Campeonato Free Fire - Kwai Live</title>
   <style>
     body {
       margin: 0;
@@ -27,40 +27,42 @@
     }
     header h1 {
       margin: 0;
-      font-size: 28px;
+      font-size: 26px;
       font-weight: bold;
     }
     header p {
       margin: 8px 0 0;
-      font-size: 18px;
+      font-size: 16px;
     }
 
     /* Ranking */
     #ranking {
-      margin: 20px 0;
+      margin: 15px 0;
       width: 95%;
       max-width: 800px;
       background: #1c1c1c;
       border-radius: 12px;
-      overflow: hidden;
+      overflow-x: auto;
       box-shadow: 0 0 15px rgba(255, 204, 0, 0.2);
       animation: fadeIn 1s ease-in-out;
     }
     #ranking table {
       width: 100%;
       border-collapse: collapse;
+      min-width: 500px;
     }
     #ranking th {
       background: #ffcc00;
       color: #111;
       font-weight: bold;
-      padding: 12px;
+      padding: 10px;
       text-transform: uppercase;
+      font-size: 14px;
     }
     #ranking td {
-      padding: 12px;
+      padding: 10px;
       border-bottom: 1px solid #333;
-      font-size: 15px;
+      font-size: 14px;
     }
     #ranking tr:nth-child(even) {
       background: #222;
@@ -94,9 +96,9 @@
       border: none;
     }
 
-    /* Botão */
-    #refresh {
-      margin-top: 10px;
+    /* Botões */
+    .btn {
+      margin: 10px 5px;
       padding: 10px 20px;
       background: #ffcc00;
       border: none;
@@ -106,7 +108,7 @@
       color: #111;
       transition: 0.3s;
     }
-    #refresh:hover {
+    .btn:hover {
       background: #e6b800;
     }
 
@@ -119,8 +121,8 @@
 <body>
 
 <header>
-  <h1>🔥 Campeonato Free Fire - Live 🔥</h1>
-  <p id="playerInfo">Carregando dados do jogador...</p>
+  <h1>🔥 Campeonato Free Fire - Kwai Live 🔥</h1>
+  <p id="playerInfo">Carregando dados...</p>
 </header>
 
 <!-- Ranking -->
@@ -133,25 +135,31 @@
         <th>ID</th>
         <th>Kills</th>
         <th>Likes</th>
+        <th>Pontos</th>
       </tr>
     </thead>
-    <tbody id="rankingBody">
-      <!-- Dados do Firebase -->
-    </tbody>
+    <tbody id="rankingBody"></tbody>
   </table>
 </div>
-<button id="refresh" onclick="carregarRanking()">🔄 Atualizar Ranking</button>
+<button class="btn" onclick="carregarRanking()">🔄 Atualizar Ranking</button>
 
 <!-- Live -->
 <div id="live">
   <iframe id="kawaiiLive" src="https://k.kwai.com/l/CUlevctd" allowfullscreen></iframe>
 </div>
+<button class="btn" onclick="abrirNoApp()">📱 Abrir no Kwai</button>
 
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
+  // ⚡ Função de abrir direto no Kwai
+  function abrirNoApp() {
+    // Link da sua live no Kwai (troque se precisar)
+    window.location.href = "https://k.kwai.com/l/C4BauEm7";
+  }
+
   // Configuração Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyCSb_MpiKXQjPsImNp8uJbzhg5-Dflv42o",
@@ -164,7 +172,6 @@
     measurementId: "G-QMFPH46V6X"
   };
 
-  // Inicializa Firebase
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
@@ -185,16 +192,13 @@
       jogadores.push(child.val());
     });
 
-    // Ordena por kills (desc)
-    jogadores.sort((a, b) => (b.kills || 0) - (a.kills || 0));
+    jogadores.sort((a, b) => ((b.kills||0)+(b.likes||0)) - ((a.kills||0)+(a.likes||0)));
 
     let topPlayer = jogadores[0];
 
     jogadores.forEach((user, index) => {
+      const pontos = (user.kills||0) + (user.likes||0);
       const tr = document.createElement('tr');
-      tr.classList.add("fadeInRow");
-
-      // Medalhas para top 3
       let medal = "";
       if (index === 0) medal = "🥇";
       else if (index === 1) medal = "🥈";
@@ -206,22 +210,17 @@
         <td>${user.idJogo}</td>
         <td>${user.kills || 0}</td>
         <td>${user.likes || 0}</td>
+        <td>${pontos}</td>
       `;
-
-      if (index === 0) {
-        tr.classList.add("top-player");
-      }
-
+      if (index === 0) tr.classList.add("top-player");
       rankingBody.appendChild(tr);
     });
 
-    // Atualiza destaque no header
     if (topPlayer) {
-      playerInfo.textContent = `👑 Top Player: ${topPlayer.playerName} | ID: ${topPlayer.idJogo} | Kills: ${topPlayer.kills || 0} | Likes: ${topPlayer.likes || 0}`;
+      playerInfo.textContent = `👑 Top Player: ${topPlayer.playerName} | ID: ${topPlayer.idJogo} | Kills: ${topPlayer.kills||0} | Likes: ${topPlayer.likes||0}`;
     }
   }
 
-  // Atualização em tempo real
   db.ref('usuarios').on('value', snapshot => {
     atualizarRanking(snapshot);
   });
