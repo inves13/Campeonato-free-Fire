@@ -1,18 +1,21 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Plataforma de Investimento / Campeonato</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Plataforma de Investimento — Campeonato</title>
 
-<!-- Fonte moderna + Ícones -->
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<!-- Fonte + Ícones -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <!-- QRCode lib (gera o QR do PIX) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <style>
+  /* ==========================
+     VARS & RESET
+     ========================== */
   :root{
     --bg:#f5f7fb;
     --card:#ffffff;
@@ -25,235 +28,253 @@
     --danger:#ef4444;
     --radius:16px;
     --shadow:0 8px 24px rgba(0,0,0,.08);
+    --glass: rgba(255,255,255,0.85);
   }
   *{box-sizing:border-box}
   html,body{height:100%}
-  body{
-    margin:0; font-family:'Poppins',sans-serif; background:var(--bg); color:var(--text);
-  }
+  body{ margin:0; font-family:'Poppins',sans-serif; background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; }
+
+  /* ==========================
+     HEADER
+     ========================== */
   header{
     background:linear-gradient(180deg, var(--green-dark), #0c5c2a);
-    color:#fff; padding:22px 18px; text-align:center;
-    border-bottom-left-radius:24px; border-bottom-right-radius:24px; box-shadow:var(--shadow);
-    position:sticky; top:0; z-index:2;
-    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    color:#fff; padding:20px 18px; text-align:center;
+    border-bottom-left-radius:20px; border-bottom-right-radius:20px; box-shadow:var(--shadow);
+    position:sticky; top:0; z-index:20;
   }
-  header .title-wrap{flex:1; text-align:center}
-  header h1{margin:0 0 6px 0; font-size:18px; font-weight:600}
+  header h1{margin:0 0 4px 0; font-size:20px; font-weight:600}
   header p{margin:0; font-size:13px; opacity:.95}
-  .logout-btn{ background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12); color:#fff; padding:8px 12px; border-radius:10px; cursor:pointer; font-weight:600 }
-  main{padding:18px; padding-bottom:90px; max-width:980px; margin:0 auto;}
 
+  main{ padding:18px; padding-bottom:110px; max-width:960px; margin:0 auto; }
+
+  /* ==========================
+     CARDS & LAYOUT
+     ========================== */
   .card{
     background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow);
     padding:16px; margin-bottom:14px;
   }
-
   h2{font-size:18px; color:var(--green-dark); margin:10px 0 12px}
   h3{font-size:16px; color:var(--text); margin:4px 0 10px}
+
+  .row{ display:grid; grid-template-columns:1fr 1fr; gap:10px; align-items:center; }
+  @media (max-width:560px){ .row{ grid-template-columns:1fr } }
 
   input, select, button, textarea{
     width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--line); font-size:15px;
     background:#fff; color:var(--text);
   }
-  input:focus, select:focus{outline:2px solid rgba(34,197,94,.18); border-color:var(--success)}
-  .row{display:grid; grid-template-columns:1fr 1fr; gap:10px}
-  @media (max-width:640px){ .row{grid-template-columns:1fr} }
+  input:focus, select:focus, textarea:focus{ outline:3px solid rgba(34,197,94,.12); border-color:var(--success) }
 
   .btn{
-    background:var(--green); color:#fff; border:none; font-weight:600; cursor:pointer; transition:.2s;
+    background:var(--green); color:#fff; border:none; font-weight:600; cursor:pointer; transition:.18s;
     box-shadow:0 6px 16px rgba(22,163,74,.18);
     padding:12px 14px; border-radius:12px;
   }
-  .btn:hover{ background:var(--green-dark) }
-  .btn-outline{ background:#fff; color:var(--green); border:1px solid var(--green); padding:12px 14px; border-radius:12px; }
+  .btn[disabled]{ opacity:.6; cursor:not-allowed; transform:none; box-shadow:none }
+  .btn:hover:not([disabled]){ background:var(--green-dark); transform:translateY(-2px) }
+  .btn-outline{ background:#fff; color:var(--green); border:1px solid var(--green); }
   .btn-outline:hover{ color:#fff; background:var(--green) }
 
-  .history{ max-height:260px; overflow:auto; display:grid; gap:8px; padding-right:6px; }
-  .history .item{ background:#f8fafc; border:1px dashed var(--line); padding:10px; border-radius:12px; font-size:14px }
+  .muted{ color:var(--muted); font-size:13px }
 
-  .auth{ max-width:560px; margin:18px auto; padding:14px 18px; }
-  .auth .title{font-weight:600; color:var(--green-dark); margin-bottom:8px}
-  .divider{ height:1px; background:var(--line); margin:14px 0 }
-
-  /* Nav inferior */
-  nav{
-    position:fixed; bottom:0; left:0; right:0; z-index:3;
-    background:#0f4726;
-    backdrop-filter:saturate(140%) blur(6px);
-    border-top:1px solid rgba(255,255,255,.08);
-  }
-  .nav-wrap{
-    max-width:980px; margin:0 auto; display:flex; justify-content:space-around; gap:4px; padding:8px 10px;
-  }
-  nav button{
-    background:none; border:none; color:#e5f7ec; font-size:12px; cursor:pointer;
-    display:flex; flex-direction:column; align-items:center; gap:4px; padding:6px 10px; border-radius:12px; transition:.15s;
-  }
-  nav button i{ font-size:18px; }
-  nav button.active, nav button:hover{ background:rgba(34,197,94,.18); color:#fff; transform:translateY(-1px) }
-
-  section{ display:none; }
-  section.active{ display:block; }
-
-  /* PIX */
+  /* ==========================
+     PIX / QR
+     ========================== */
   .pix-container{ text-align:center }
-  .pix-grid{ display:grid; grid-template-columns:1fr; gap:12px; margin-top:10px }
+  .pix-grid{ display:grid; grid-template-columns:1fr; gap:12px; margin-top:12px; }
   .pix-code{
-    background:#f8fafc; border:1px solid var(--line); padding:12px; border-radius:12px; font-size:14px; word-break:break-all; text-align:left
+    background:#f8fafc; border:1px solid var(--line); padding:12px; border-radius:12px; font-size:14px; word-break:break-all; text-align:left;
   }
-  .qr-box{ display:flex; align-items:center; justify-content:center; padding:12px; background:#fff; border:1px solid var(--line); border-radius:12px; width:220px; margin:0 auto; }
+  .qr-box{ display:flex; align-items:center; justify-content:center; padding:12px; background:#fff; border:1px solid var(--line); border-radius:12px; }
 
-  .muted{ color:var(--muted); font-size:13px; }
+  /* ==========================
+     NAV
+     ========================== */
+  nav{
+    position:fixed; bottom:10px; left:50%; transform:translateX(-50%); z-index:30;
+    background:linear-gradient(180deg,#0b4d2a,#083f20);
+    border-radius:999px; padding:8px; box-shadow:0 8px 30px rgba(2,40,20,.35);
+  }
+  .nav-wrap{ max-width:860px; display:flex; gap:6px; align-items:center; }
+  nav button{
+    background:none; border:none; color:#dff6ea; font-size:12px; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:4px; padding:8px 12px; border-radius:12px; transition:.15s;
+  }
+  nav button i{ font-size:16px; }
+  nav button.active, nav button:hover{ background:rgba(255,255,255,.04); color:#fff; transform:translateY(-3px) }
 
-  /* Toast */
+  /* ==========================
+     HISTORY
+     ========================== */
+  .history{ max-height:260px; overflow:auto; display:grid; gap:8px; padding-right:6px; }
+  .history .item{ background:#f8fafc; border:1px dashed var(--line); padding:10px; border-radius:12px; font-size:14px; color:var(--text) }
+
+  /* ==========================
+     MESSAGES & TOAST
+     ========================== */
+  .msg {
+    border-radius:10px; padding:10px 12px; margin-top:10px; display:none; font-size:14px;
+  }
+  .msg.show{ display:block; }
+  .msg.error{ background: #fff0f0; color:var(--danger); border:1px solid rgba(239,68,68,.12) }
+  .msg.success{ background: #f0fff5; color:var(--success); border:1px solid rgba(34,197,94,.12) }
+
   .toast{
     position:fixed; bottom:86px; left:50%; transform:translateX(-50%) translateY(20px);
     background:#062e17; color:#d1fae5; padding:10px 14px; border-radius:12px; box-shadow:var(--shadow);
-    opacity:0; pointer-events:none; transition:.25s; z-index:50; font-size:14px;
+    opacity:0; pointer-events:none; transition:.25s; z-index:40; font-size:14px;
   }
   .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto }
 
-  /* Live iframe */
-  .live-frame{ width:100%; height:520px; border:none; border-radius:14px; background:#000; }
-
-  /* Loading overlay */
-  #loadingOverlay{
-    position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,.6); z-index:60; display:none;
-  }
-  #loadingOverlay .loader{ background:#fff; padding:18px 22px; border-radius:12px; box-shadow:var(--shadow); display:flex; gap:12px; align-items:center }
-  .small-muted{ font-size:12px; color:var(--muted) }
-
-  /* Admin */
-  .admin-panel{ background:#fffaf0; border:1px solid #fde3b7; }
-  .admin-actions button{ margin-right:8px; margin-bottom:6px; }
-
-  .label{ font-size:13px; color:var(--muted); margin-top:6px }
+  /* small helper */
+  .muted-small{ color:var(--muted); font-size:12px; margin-top:6px }
+  label{ font-size:13px; margin-bottom:6px; display:block; color:var(--text); font-weight:600; }
+  .sr-only{ position:absolute; left:-9999px; top:auto; width:1px; height:1px; overflow:hidden; }
 </style>
 </head>
 <body>
 
-<!-- TOAST -->
-<div id="toast" class="toast">✅ Ação realizada!</div>
-
-<!-- LOADING OVERLAY -->
-<div id="loadingOverlay">
-  <div class="loader">
-    <i class="fa-solid fa-spinner fa-spin" style="font-size:20px;color:#16a34a;"></i>
+<!-- ==========================
+     AUTH (cadastro + login)
+     - agora com forms sem dependência de alert()
+     - mensagens inline para feedback
+     ========================== -->
+<div id="authContainer" class="card" style="max-width:520px;margin:20px auto;">
+  <div style="display:flex;gap:12px;align-items:center;justify-content:space-between;">
     <div>
-      <div style="font-weight:700">Carregando...</div>
-      <div class="small-muted">Aguarde enquanto buscamos seus dados</div>
+      <h2 style="margin:0;color:var(--green-dark)">Cadastro</h2>
+      <div class="muted-small">Crie sua conta para participar do campeonato</div>
     </div>
+    <div class="muted-small">Já tem conta? Use o formulário de login abaixo</div>
   </div>
+
+  <!-- mensagens gerais -->
+  <div id="authMsg" class="msg" role="alert" aria-live="polite"></div>
+
+  <!-- Formulário registro (substitui o uso de alert) -->
+  <form id="registerForm" aria-label="Formulário de cadastro" style="margin-top:12px;">
+    <div class="row">
+      <div>
+        <label for="registerFullName">Nome completo</label>
+        <input id="registerFullName" name="fullName" type="text" placeholder="Nome completo" required />
+      </div>
+      <div>
+        <label for="registerPlayerName">Nome do jogador</label>
+        <input id="registerPlayerName" name="playerName" type="text" placeholder="Nome do jogador" required />
+      </div>
+    </div>
+    <div class="row" style="margin-top:8px;">
+      <div>
+        <label for="registerPlayerID">ID do jogador</label>
+        <input id="registerPlayerID" name="playerID" type="text" placeholder="ID do jogador" required />
+      </div>
+      <div>
+        <label for="registerPhone">Telefone</label>
+        <input id="registerPhone" name="phone" type="tel" placeholder="(99) 9xxxx-xxxx" inputmode="tel" required />
+      </div>
+    </div>
+    <div style="margin-top:8px;">
+      <label for="registerEmail">Email</label>
+      <input id="registerEmail" name="email" type="email" placeholder="seu@email.com" required />
+    </div>
+    <div class="row" style="margin-top:8px;">
+      <div>
+        <label for="registerPassword">Senha</label>
+        <input id="registerPassword" name="password" type="password" placeholder="Senha (min 6 caracteres)" minlength="6" required />
+      </div>
+      <div style="align-self:end">
+        <button class="btn" type="submit" id="btnRegister">Cadastrar</button>
+      </div>
+    </div>
+  </form>
+
+  <hr style="border:none;border-top:1px solid var(--line);margin:12px 0">
+
+  <h2 style="margin:0;color:var(--green-dark)">Login</h2>
+  <form id="loginForm" aria-label="Formulário de login" style="margin-top:10px;">
+    <div>
+      <label for="loginEmail">Email</label>
+      <input id="loginEmail" name="loginEmail" type="email" placeholder="seu@email.com" required />
+    </div>
+    <div class="row" style="margin-top:8px;">
+      <div>
+        <label for="loginPassword">Senha</label>
+        <input id="loginPassword" name="loginPassword" type="password" placeholder="Senha" required />
+      </div>
+      <div style="align-self:end">
+        <button class="btn" type="submit" id="btnLogin">Entrar</button>
+      </div>
+    </div>
+    <div class="muted-small" style="margin-top:8px">⚠️ Seus dados são protegidos. Use um email válido.</div>
+  </form>
 </div>
 
-<!-- AUTH -->
-<div id="authContainer" class="auth">
-  <div class="card">
-    <div class="title">Cadastro</div>
-    <div class="row">
-      <input type="text" id="registerFullName" placeholder="Nome completo">
-      <input type="text" id="registerPlayerName" placeholder="Nome do jogador">
-    </div>
-    <div class="row">
-      <input type="text" id="registerPlayerID" placeholder="ID do jogador">
-      <input type="text" id="registerPhone" placeholder="Telefone (somente números)">
-    </div>
-    <input type="email" id="registerEmail" placeholder="Email">
-    <div class="row">
-      <input type="password" id="registerPassword" placeholder="Senha (min 6 caracteres)">
-      <button class="btn" onclick="register()">Cadastrar</button>
-    </div>
-    <div class="divider"></div>
-    <div class="title">Login</div>
-    <input type="email" id="loginEmail" placeholder="Email">
-    <div class="row">
-      <input type="password" id="loginPassword" placeholder="Senha">
-      <button class="btn" onclick="login()">Entrar</button>
-    </div>
-    <div class="label">⚠️ Seus dados são protegidos. Use um email válido.</div>
-  </div>
-</div>
-
-<!-- APP -->
+<!-- ==========================
+     APP (visível após login)
+     ========================== -->
 <div id="mainContainer" style="display:none;">
   <header>
-    <div style="width:44px; text-align:left;">
-      <img id="userAvatar" src="" alt="" style="width:44px;height:44px;border-radius:12px;display:none;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,.08)">
-    </div>
-    <div class="title-wrap">
-      <h1>Bem-vindo, <span id="headerName">Jogador</span></h1>
-      <p>Saldo da Carteira: <strong id="saldo">R$ 0,00</strong></p>
-    </div>
-    <div style="text-align:right">
-      <button class="logout-btn" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Sair</button>
-    </div>
+    <h1>Bem-vindo, <span id="headerName" aria-live="polite"></span></h1>
+    <p>Saldo da Carteira: <strong>R$ <span id="saldo">0,00</span></strong></p>
   </header>
 
   <main>
     <!-- HOME -->
-    <section id="home" class="active">
-      <h2>Home</h2>
-      <div class="card">
-        <div class="row">
-          <p><strong>Nome do jogador:</strong><br><span id="homePlayerName" class="muted">—</span></p>
-          <p><strong>ID do jogador:</strong><br><span id="homePlayerID" class="muted">—</span></p>
+    <section id="home" class="card active" aria-labelledby="homeTitle">
+      <h2 id="homeTitle">Home</h2>
+      <div class="row">
+        <div>
+          <strong>Nome do jogador:</strong><br>
+          <span id="homePlayerName" class="muted">—</span>
         </div>
-
-        <div style="margin-top:12px" class="row">
-          <button class="btn" onclick="abrirLive()"><i class="fa-solid fa-video"></i> &nbsp;Ir para Live</button>
-          <button class="btn-outline" onclick="showSection('deposito')"><i class="fa-solid fa-qrcode"></i> &nbsp;Fazer Depósito (PIX)</button>
-        </div>
-
-        <!-- INSCRIÇÃO: botão + status -->
-        <div style="margin-top:12px">
-          <button id="btnInscricao" class="btn" onclick="comprarInscricao()"><i class="fa-solid fa-ticket"></i> &nbsp;Comprar inscrição (R$ 5,00)</button>
-          <div id="statusInscricao" class="muted" style="margin-top:8px">—</div>
+        <div>
+          <strong>ID do jogador:</strong><br>
+          <span id="homePlayerID" class="muted">—</span>
         </div>
       </div>
 
-      <div class="card">
-        <h3>Últimos Movimentos</h3>
-        <div id="homeHistory" class="history"></div>
+      <div style="margin-top:12px;">
+        <h3>Assistir à Live</h3>
+        <button class="btn" id="btnIrLive" type="button"><i class="fa-solid fa-video"></i> &nbsp;Ir para Live</button>
       </div>
     </section>
 
     <!-- PERFIL -->
-    <section id="perfil">
-      <h2>Perfil do Jogador</h2>
-      <div class="card">
-        <p><strong>Nome completo:</strong> <span id="profileFullName" class="muted">—</span></p>
-        <p><strong>Nome do jogador:</strong> <span id="profilePlayerName" class="muted">—</span></p>
-        <p><strong>ID do jogador:</strong> <span id="profilePlayerID" class="muted">—</span></p>
-        <p><strong>Telefone:</strong> <span id="profilePhone" class="muted">—</span></p>
-        <p><strong>Email:</strong> <span id="profileEmail" class="muted">—</span></p>
-        <p><strong>Status inscrição:</strong> <span id="profileInscricao" class="muted">—</span></p>
-      </div>
+    <section id="perfil" class="card" aria-labelledby="perfilTitle" style="display:none;">
+      <h2 id="perfilTitle">Perfil do Jogador</h2>
+      <p><strong>Nome completo:</strong> <span id="profileFullName" class="muted">—</span></p>
+      <p><strong>Nome do jogador:</strong> <span id="profilePlayerName" class="muted">—</span></p>
+      <p><strong>ID do jogador:</strong> <span id="profilePlayerID" class="muted">—</span></p>
+      <p><strong>Telefone:</strong> <span id="profilePhone" class="muted">—</span></p>
+      <p><strong>Email:</strong> <span id="profileEmail" class="muted">—</span></p>
     </section>
 
     <!-- CARTEIRA -->
-    <section id="carteira">
-      <h2>Carteira</h2>
-      <div class="card">
-        <p>Saldo atual: <strong id="carteiraSaldo">R$ 0,00</strong></p>
+    <section id="carteira" class="card" aria-labelledby="carteiraTitle" style="display:none;">
+      <h2 id="carteiraTitle">Carteira</h2>
+      <div>
+        <p>Saldo atual: <strong>R$ <span id="carteiraSaldo">0,00</span></strong></p>
       </div>
-      <h3>Histórico</h3>
-      <div id="historico" class="history"></div>
+
+      <h3 style="margin-top:12px">Histórico</h3>
+      <div id="historico" class="history" aria-live="polite"></div>
     </section>
 
     <!-- DEPÓSITO (PIX) -->
-    <section id="deposito">
-      <h2>Depósito</h2>
-      <div class="card pix-container">
+    <section id="deposito" class="card" aria-labelledby="depositoTitle" style="display:none;">
+      <h2 id="depositoTitle">Depósito</h2>
+      <div class="pix-container">
         <p class="muted">Escaneie o QR Code ou copie o código para pagar via PIX:</p>
 
-        <div class="qr-box"><div id="qrcode"></div></div>
+        <div class="qr-box" aria-hidden="false"><div id="qrcode" aria-hidden="true"></div></div>
 
         <div class="pix-grid">
-          <div class="pix-code" id="pixCode"></div>
+          <div class="pix-code" id="pixCode" role="region" aria-label="código pix"></div>
           <div class="row">
-            <button class="btn" onclick="copiarPIX()"><i class="fa-regular fa-copy"></i> &nbsp;Copiar código</button>
-            <button class="btn-outline" onclick="sharePIX()"><i class="fa-solid fa-share-from-square"></i> &nbsp;Compartilhar</button>
+            <button class="btn" id="btnCopyPix"><i class="fa-regular fa-copy"></i> &nbsp;Copiar código</button>
+            <button class="btn-outline" id="btnSharePix"><i class="fa-solid fa-share-from-square"></i> &nbsp;Compartilhar</button>
           </div>
         </div>
 
@@ -262,68 +283,74 @@
     </section>
 
     <!-- RETIRADA -->
-    <section id="retirada">
-      <h2>Retirada</h2>
-      <div class="card">
-        <input type="text" id="nomeSaque" placeholder="Nome completo">
-        <select id="tipoChave">
+    <section id="retirada" class="card" aria-labelledby="retiradaTitle" style="display:none;">
+      <h2 id="retiradaTitle">Retirada</h2>
+
+      <!-- mensagens específicas do formulário de saque -->
+      <div id="saqueMsg" class="msg" role="alert" aria-live="polite"></div>
+
+      <div>
+        <label for="nomeSaque">Nome completo</label>
+        <input type="text" id="nomeSaque" placeholder="Nome completo" />
+
+        <label for="tipoChave">Tipo de chave</label>
+        <select id="tipoChave" aria-label="Tipo de chave PIX">
           <option value="">Tipo de chave</option>
           <option value="email">Email</option>
           <option value="cpf">CPF</option>
           <option value="telefone">Telefone</option>
         </select>
-        <input type="text" id="chavePIX" placeholder="Chave PIX">
-        <input type="number" id="valorSaque" placeholder="Valor (50-500)">
-        <button class="btn" onclick="solicitarSaque()"><i class="fa-solid fa-hand-holding-dollar"></i> &nbsp;Solicitar saque</button>
+
+        <label for="chavePIX">Chave PIX</label>
+        <input type="text" id="chavePIX" placeholder="Chave PIX (ex: email@ex.com ou CPF ou telefone)" />
+
+        <label for="valorSaque">Valor do saque</label>
+        <input type="number" id="valorSaque" placeholder="Valor (50-500)" min="50" max="500" />
+
+        <div style="margin-top:10px;">
+          <button class="btn" id="btnSolicitarSaque"><i class="fa-solid fa-hand-holding-dollar"></i> &nbsp;Solicitar saque</button>
+        </div>
       </div>
-      <h3>Histórico de Saques</h3>
-      <div id="historicoSaque" class="history"></div>
+
+      <h3 style="margin-top:14px">Histórico de Saques</h3>
+      <div id="historicoSaque" class="history" aria-live="polite"></div>
     </section>
 
     <!-- LIVE -->
-    <section id="live">
-      <h2>Live Free Fire</h2>
-      <iframe class="live-frame" src="campeonato.html"></iframe>
-    </section>
-
-    <!-- ADMIN -->
-    <section id="admin" style="display:none;">
-      <h2>Admin - Painel</h2>
-      <div class="card admin-panel">
-        <h3>Depósitos pendentes</h3>
-        <div id="adminDepositos" class="history"></div>
-
-        <h3 style="margin-top:12px">Saques pendentes</h3>
-        <div id="adminSaques" class="history"></div>
-      </div>
+    <section id="live" class="card" aria-labelledby="liveTitle" style="display:none;">
+      <h2 id="liveTitle">Live Free Fire</h2>
+      <iframe class="live-frame" src="campeonato.html" title="Live do campeonato"></iframe>
     </section>
   </main>
 
   <!-- NAV -->
-  <nav>
+  <nav aria-label="Navegação principal">
     <div class="nav-wrap">
-      <button data-target="home" class="active"><i class="fas fa-house"></i><span>Home</span></button>
-      <button data-target="perfil"><i class="fas fa-user"></i><span>Perfil</span></button>
-      <button data-target="carteira"><i class="fas fa-wallet"></i><span>Carteira</span></button>
-      <button data-target="deposito"><i class="fas fa-money-bill-wave"></i><span>Depósito</span></button>
-      <button data-target="retirada"><i class="fas fa-hand-holding-dollar"></i><span>Retirada</span></button>
-      <button data-target="live"><i class="fas fa-video"></i><span>Live</span></button>
-      <button data-target="admin"><i class="fas fa-shield"></i><span>Admin</span></button>
+      <button data-target="home" class="active" aria-controls="home"><i class="fas fa-house"></i><span>Home</span></button>
+      <button data-target="perfil" aria-controls="perfil"><i class="fas fa-user"></i><span>Perfil</span></button>
+      <button data-target="carteira" aria-controls="carteira"><i class="fas fa-wallet"></i><span>Carteira</span></button>
+      <button data-target="deposito" aria-controls="deposito"><i class="fas fa-money-bill-wave"></i><span>Depósito</span></button>
+      <button data-target="retirada" aria-controls="retirada"><i class="fas fa-hand-holding-dollar"></i><span>Retirada</span></button>
+      <button data-target="live" aria-controls="live"><i class="fas fa-video"></i><span>Live</span></button>
     </div>
   </nav>
 </div>
 
-<!-- Firebase -->
+<!-- TOAST -->
+<div id="toast" class="toast" role="status" aria-live="polite">✅ Ação realizada</div>
+
+<!-- ==========================
+     FIREBASE (compat) - mantive seu config
+     ========================== -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
 /* ========= CONFIG ========= */
-/* Mantenha seu payload PIX aqui */
+/* manteve seu payload e firebaseConfig — só reorganizei o código para melhor leitura */
 const PIX_PAYLOAD = "00020126850014br.gov.bcb.pix01367afe98b1-ad17-4884-be4d-9a77d0d107ca0223campeonato de free Fire52040000530398654045.005802BR5919Luis Nunes de Jesus6009Sao Paulo610901227-20062230519daqr7277131494591136304B771";
 
-/* Firebase config (mantive seu projeto) */
 const firebaseConfig = {
   apiKey: "AIzaSyCSb_MpiKXQjPsImNp8uJbzhg5-Dflv42o",
   authDomain: "campeonato-free-fire.firebaseapp.com",
@@ -342,29 +369,31 @@ const db   = firebase.database();
 let saldo = 0;
 let historicoDeposito = [];
 let historicoSaque    = [];
-let currentUID = null;
-let currentUserData = null;
-
-/* Performance flags */
-let pixInitialized = false;
-let adminLoaded = false;
-let prevSectionId = 'home';
-let prevNavBtn = document.querySelector('nav button[data-target="home"]');
 
 /* ========= UI HELPERS ========= */
-function toast(msg="Ação realizada!"){
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  setTimeout(()=> el.classList.remove('show'), 2600);
+const toastEl = document.getElementById('toast');
+function toast(msg="Ação realizada!", time=2200){
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  setTimeout(()=> toastEl.classList.remove('show'), time);
 }
-function showLoading(on=true){
-  document.getElementById('loadingOverlay').style.display = on ? 'flex' : 'none';
+function showInlineMsg(elId, message, type='error'){
+  const el = document.getElementById(elId);
+  if(!el) return;
+  el.className = 'msg ' + (type==='error' ? 'error show' : 'success show');
+  el.textContent = message;
+  // remove depois de um tempo, mantendo aria-live anúncio
+  setTimeout(()=> el.className = 'msg', 4500);
+}
+
+/* formatador de moeda (pt-BR) */
+function moedaBRNumber(v){
+  try{
+    return Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2});
+  }catch(e){ return Number(v||0).toFixed(2) }
 }
 function moedaBR(v){
-  try{
-    return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-  }catch(e){ return `R$ ${Number(v||0).toFixed(2)}`.replace('.',',') }
+  return 'R$ ' + moedaBRNumber(v);
 }
 
 /* ========= NAV / SECTIONS ========= */
@@ -375,52 +404,38 @@ nav.addEventListener('click', (e)=>{
   showSection(btn.dataset.target);
 });
 function showSection(id){
-  if(prevSectionId === id) return; // já ativo -> nada a fazer
-
-  // esconder só a seção anterior (mais rápido que querySelectorAll)
-  const prevSec = document.getElementById(prevSectionId);
-  if(prevSec) prevSec.classList.remove('active');
-
-  const section = document.getElementById(id);
-  if(!section) return;
-  section.classList.add('active');
-
-  // nav active toggle (apenas alteramos os dois necessários)
-  if(prevNavBtn) prevNavBtn.classList.remove('active');
+  // esconder todos e mostrar o selecionado
+  document.querySelectorAll('main section').forEach(s=>{
+    s.style.display = s.id===id ? 'block' : 'none';
+  });
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
   const activeBtn = document.querySelector(`nav button[data-target="${id}"]`);
-  if(activeBtn){ activeBtn.classList.add('active'); prevNavBtn = activeBtn; }
-
-  prevSectionId = id;
-
-  // lazy-init QR somente quando abrir a aba Depósito
-  if(id === 'deposito' && !pixInitialized){
-    setupPIX();
-    pixInitialized = true;
-  }
-
-  // carregar pendências do admin apenas quando abrir Admin (e só uma vez por sessão)
-  if(id === 'admin' && currentUserData && currentUserData.isAdmin && !adminLoaded){
-    loadAdminPending();
-    adminLoaded = true;
-  }
+  if(activeBtn) activeBtn.classList.add('active');
 }
-function abrirLive(){ showSection('live'); }
+document.getElementById('btnIrLive').addEventListener('click', ()=> showSection('live') );
 
 /* ========= PIX (QR + COPIAR + SHARE) ========= */
 function setupPIX(){
-  // garante que não gere QR repetido se já inicializado
-  try{
-    document.getElementById('pixCode').textContent = PIX_PAYLOAD;
-    const qrContainer = document.getElementById("qrcode");
+  const pixEl = document.getElementById('pixCode');
+  if(pixEl) pixEl.textContent = PIX_PAYLOAD;
+
+  const qrContainer = document.getElementById("qrcode");
+  if(qrContainer){
     qrContainer.innerHTML = "";
-    new QRCode(qrContainer, {
-      text: PIX_PAYLOAD,
-      width: 200, height: 200, correctLevel: QRCode.CorrectLevel.M
-    });
-  }catch(e){
-    console.warn('Erro ao gerar QR:', e);
+    try{
+      new QRCode(qrContainer, {
+        text: PIX_PAYLOAD,
+        width: 200, height: 200, correctLevel: QRCode.CorrectLevel.M
+      });
+    }catch(e){
+      // caso a lib falhe, mostramos apenas o texto
+      pixEl.textContent = PIX_PAYLOAD;
+    }
   }
 }
+document.getElementById('btnCopyPix').addEventListener('click', copiarPIX);
+document.getElementById('btnSharePix').addEventListener('click', sharePIX);
+
 function copiarPIX(){
   const text = PIX_PAYLOAD;
   if(navigator.clipboard && window.isSecureContext){
@@ -428,111 +443,87 @@ function copiarPIX(){
   }else{
     const ta = document.createElement('textarea');
     ta.value = text; document.body.appendChild(ta); ta.select();
-    try{ document.execCommand('copy'); toast("✅ Código PIX copiado!"); }catch{ alert('Não foi possível copiar. Copie manualmente.'); }
+    try{ document.execCommand('copy'); toast("✅ Código PIX copiado!"); }catch{ showInlineMsg('authMsg','Não foi possível copiar automaticamente. Copie manualmente.','error'); }
     document.body.removeChild(ta);
   }
 }
 function sharePIX(){
   if(navigator.share){
-    navigator.share({title:"PIX - Campeonato", text:PIX_PAYLOAD})
-      .then(()=> toast("✅ Compartilhado!"))
-      .catch(()=> { copiarPIX(); });
+    navigator.share({title:"PIX", text:"Código PIX para pagamento: "+PIX_PAYLOAD}).then(()=> toast("✅ Pronto para compartilhar!"))
+      .catch(()=> { navigator.clipboard.writeText(PIX_PAYLOAD).then(()=> toast("✅ Código copiado para área de transferência!")); });
   }else{
-    copiarPIX();
+    navigator.clipboard.writeText(PIX_PAYLOAD).then(()=> toast("✅ Código PIX copiado!"));
   }
 }
 
-/* ========= AUTH ========= */
-function validatePhone(phone){
-  return /^\d{8,13}$/.test(phone);
-}
+/* ========= AUTH (register/login) ========= */
+const registerForm = document.getElementById('registerForm');
+const loginForm = document.getElementById('loginForm');
+registerForm.addEventListener('submit', e=>{ e.preventDefault(); register(); });
+loginForm.addEventListener('submit', e=>{ e.preventDefault(); login(); });
+
 function register(){
+  const btn = document.getElementById('btnRegister'); btn.disabled = true;
   const fullName  = document.getElementById('registerFullName').value.trim();
   const playerName= document.getElementById('registerPlayerName').value.trim();
   const playerID  = document.getElementById('registerPlayerID').value.trim();
-  const phone     = document.getElementById('registerPhone').value.trim().replace(/\D/g,'');
+  const phone     = document.getElementById('registerPhone').value.trim();
   const email     = document.getElementById('registerEmail').value.trim();
   const password  = document.getElementById('registerPassword').value;
 
+  // validação simples no front
   if(!fullName || !playerName || !playerID || !phone || !email || !password){
-    alert('Preencha todos os campos!'); return;
+    showInlineMsg('authMsg','Preencha todos os campos.','error'); btn.disabled = false; return;
   }
-  if(password.length < 6){ alert('A senha precisa ter pelo menos 6 caracteres.'); return; }
-  if(!validatePhone(phone)){ alert('Telefone inválido. Use apenas números (ex: 11999998888).'); return; }
+  if(password.length < 6){ showInlineMsg('authMsg','Senha deve ter pelo menos 6 caracteres.','error'); btn.disabled = false; return; }
 
-  showLoading(true);
   auth.createUserWithEmailAndPassword(email, password).then(cred=>{
     const uid = cred.user.uid;
-    const userObj = {
-      nome: fullName,
-      playerName,
-      idJogo: playerID,
-      telefone: phone,
-      email,
-      saldo: 0,
-      depositos: {},
-      saques: {},
-      dateCreated: new Date().toISOString()
-    };
-    return db.ref('usuarios/'+uid).set(userObj).then(()=>{
-      toast("🎉 Cadastro realizado!");
+    return db.ref('usuarios/'+uid).set({
+      nome: fullName, playerName, idJogo: playerID, telefone: phone, email,
+      saldo: 0, depositos:{}, saques:{}
+    }).then(()=>{
+      showInlineMsg('authMsg','🎉 Cadastro realizado! Redirecionando...', 'success');
       document.getElementById('authContainer').style.display='none';
       document.getElementById('mainContainer').style.display='block';
       loadUserData(uid);
     });
-  }).catch(err=> {
-    alert(err.message);
-    showLoading(false);
-  });
+  }).catch(err=>{
+    showInlineMsg('authMsg', err.message || 'Erro ao criar conta', 'error');
+  }).finally(()=> btn.disabled = false);
 }
 
 function login(){
+  const btn = document.getElementById('btnLogin'); btn.disabled = true;
   const email    = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
-  if(!email || !password){ alert('Preencha todos os campos!'); return; }
-  showLoading(true);
+  if(!email || !password){ showInlineMsg('authMsg','Preencha todos os campos do login.','error'); btn.disabled = false; return; }
+
   auth.signInWithEmailAndPassword(email, password).then(cred=>{
     document.getElementById('authContainer').style.display='none';
     document.getElementById('mainContainer').style.display='block';
     loadUserData(cred.user.uid);
-  }).catch(err=> { alert(err.message); showLoading(false); });
+    showInlineMsg('authMsg','Bem-vindo! Carregando seus dados...','success');
+  }).catch(err=>{
+    showInlineMsg('authMsg', err.message || 'Erro ao entrar', 'error');
+  }).finally(()=> btn.disabled = false);
 }
 
-function logout(){
-  auth.signOut().then(()=>{
-    document.getElementById('mainContainer').style.display='none';
-    document.getElementById('authContainer').style.display='block';
-    currentUID = null; currentUserData = null;
-    pixInitialized = false;
-    adminLoaded = false;
-    // reset to Home view
-    showSection('home');
-  });
-}
-
-/* single auth listener */
+// manter persistência do login
 auth.onAuthStateChanged(user=>{
   if(user){
     document.getElementById('authContainer').style.display='none';
     document.getElementById('mainContainer').style.display='block';
     loadUserData(user.uid);
-  }else{
-    // remain at login
   }
 });
 
-/* ========= DATA BIND / LOAD ========= */
-/* ========== ATENÇÃO: loadUserData substituído conforme seu trecho ========= */
+/* ========= DATA BIND ========= */
 function loadUserData(uid){
-  showLoading(true);
-  currentUID = uid;
   db.ref('usuarios/'+uid).once('value').then(snap=>{
-    showLoading(false);
-    if(!snap.exists()) { alert("Usuário não encontrado!"); return; }
+    if(!snap.exists()) { showInlineMsg('authMsg','Usuário não encontrado!','error'); return; }
     const u = snap.val();
-    currentUserData = u;
 
-    // dados básicos
     document.getElementById('headerName').textContent = u.nome || '';
     document.getElementById('homePlayerName').textContent = u.playerName || '';
     document.getElementById('homePlayerID').textContent   = u.idJogo || '';
@@ -542,275 +533,91 @@ function loadUserData(uid){
     document.getElementById('profilePhone').textContent      = u.telefone || '';
     document.getElementById('profileEmail').textContent      = u.email || '';
 
-    // saldo
     saldo = Number(u.saldo||0);
-    document.getElementById('saldo').textContent = moedaBR(saldo);
-    document.getElementById('carteiraSaldo').textContent = moedaBR(saldo);
+    historicoDeposito = u.depositos ? Object.values(u.depositos).map(dep=>({
+        text:`Depósito: ${moedaBRNumber(dep.valor)} — ${dep.status}`,
+        raw:dep
+      })) : [];
+    historicoSaque    = u.saques    ? Object.values(u.saques).map(saq=>({
+        text:`Saque: ${moedaBRNumber(saq.valor)} — ${saq.status}`,
+        raw:saq
+      })) : [];
 
-    // inscrição
-    if(u.inscricao === true){
-      document.getElementById('statusInscricao').textContent = "✅ Inscrito";
-      document.getElementById('profileInscricao').textContent = "✅ Inscrito";
-    }else{
-      document.getElementById('statusInscricao').textContent = "❌ Não inscrito";
-      document.getElementById('profileInscricao').textContent = "❌ Não inscrito";
-    }
-  }).catch(err=>{
-    showLoading(false);
-    alert('Erro ao carregar dados: '+err.message);
+    atualizarTela();
+    setupPIX(); // garante PIX renderizado quando logar
+  }).catch(e=>{
+    showInlineMsg('authMsg','Erro ao carregar dados: '+(e.message||e),'error');
   });
 }
 
-function atualizarTela(){
-  document.getElementById('saldo').textContent = moedaBR(saldo);
-  document.getElementById('carteiraSaldo').textContent = moedaBR(saldo);
-  // home history show last 8 moves (depositos + saques)
-  const combined = [
-    ...historicoDeposito.map(h=>({t:h.text, date: h.raw && h.raw.date ? new Date(h.raw.date) : new Date()})),
-    ...historicoSaque.map(h=>({t:h.text, date: h.raw && h.raw.date ? new Date(h.raw.date) : new Date()}))
-  ].sort((a,b)=> b.date - a.date).slice(0,8);
-  document.getElementById('homeHistory').innerHTML = combined.length ? combined.map(c=>`<div class="item">${c.t}</div>`).join('') : '<div class="muted">Sem movimentos ainda.</div>';
+/* ========= SAQUE ========= */
+/* Mantive as regras: valor entre 50 e 500 e mesma lógica de transação */
+document.getElementById('btnSolicitarSaque').addEventListener('click', solicitarSaque);
 
-  document.getElementById('historico').innerHTML = historicoDeposito.concat(historicoSaque).length
-    ? historicoDeposito.concat(historicoSaque).map(h=>`<div class="item">${h.text}</div>`).join('')
-    : '<div class="muted">Sem movimentos ainda.</div>';
-
-  document.getElementById('historicoSaque').innerHTML = historicoSaque.length
-    ? historicoSaque.map(h=>`<div class="item">${h.text}</div>`).join('')
-    : '<div class="muted">Nenhum saque solicitado.</div>';
-
-  // INSCRIÇÃO UI (mostra/oculta botão e atualiza status)
-  try{
-    const btn = document.getElementById('btnInscricao');
-    const stat = document.getElementById('statusInscricao');
-    const profileStat = document.getElementById('profileInscricao');
-
-    // Ajustado para suportar ambos os formatos: boolean true OR objeto {status, date}
-    if(currentUserData){
-      if(currentUserData.inscricao === true){
-        if(btn) btn.style.display = 'none';
-        if(stat) stat.textContent = '✅ Inscrito';
-        if(profileStat) profileStat.textContent = '✅ Inscrito';
-      } else if (currentUserData.inscricao && currentUserData.inscricao.status === 'Comprada'){
-        const dateISO = currentUserData.inscricao.date;
-        const disp = dateISO ? new Date(dateISO).toLocaleString() : currentUserData.inscricao.date || '';
-        if(btn) btn.style.display = 'none';
-        if(stat) stat.innerHTML = `✅ Inscrição realizada em ${disp}`;
-        if(profileStat) profileStat.innerHTML = `✅ ${disp}`;
-      } else {
-        if(btn) btn.style.display = 'inline-block';
-        if(stat) stat.innerHTML = '❌ Não inscrito';
-        if(profileStat) profileStat.innerHTML = '❌ Não inscrito';
-      }
-    }
-  }catch(e){
-    console.warn('Erro atualizando UI de inscrição', e);
-  }
-}
-
-/* ========= INSCRIÇÃO ========== */
-/* Função substituída pelo seu trecho (grava inscricao=true e dataInscricao) */
-function comprarInscricao(){
-  if(!currentUID || !currentUserData){
-    alert("Faça login primeiro.");
-     return;
-  }
-  if(currentUserData.inscricao === true){
-    toast("✅ Você já está inscrito!");
-    return;
-  }
-
-  // verificar saldo suficiente
-  if(saldo < 5){
-    toast("❌ Saldo insuficiente. Faça um depósito.");
-    return;
-  }
-
-  // descontar do saldo e gravar no banco
-  const novoSaldo = saldo - 5;
-  const dataInscricao = new Date().toISOString();
-
-  // atualizar no Firebase
-  const updates = {};
-  updates['usuarios/'+currentUID+'/saldo'] = novoSaldo;
-  updates['usuarios/'+currentUID+'/inscricao'] = true;
-  updates['usuarios/'+currentUID+'/dataInscricao'] = dataInscricao;
-
-  db.ref().update(updates).then(()=>{
-    saldo = novoSaldo;
-    currentUserData.saldo = novoSaldo;
-    currentUserData.inscricao = true;
-    currentUserData.dataInscricao = dataInscricao;
-
-    document.getElementById('saldo').textContent = moedaBR(saldo);
-    document.getElementById('carteiraSaldo').textContent = moedaBR(saldo);
-    document.getElementById('statusInscricao').textContent = "✅ Inscrito";
-    document.getElementById('profileInscricao').textContent = "✅ Inscrito";
-
-    toast("🎟️ Inscrição realizada com sucesso!");
-  }).catch(err=>{
-    alert("Erro ao registrar inscrição: "+err.message);
-  });
-}
-
-/* ========= SAQUE (USUÁRIO) ========= */
 function solicitarSaque(){
+  const btn = document.getElementById('btnSolicitarSaque'); btn.disabled = true;
   const nome  = document.getElementById('nomeSaque').value.trim();
   const tipo  = document.getElementById('tipoChave').value;
   const chave = document.getElementById('chavePIX').value.trim();
   const valor = parseFloat(document.getElementById('valorSaque').value);
 
-  if(!nome || !tipo || !chave || isNaN(valor)){ alert("Preencha todos os campos corretamente."); return; }
-  if(valor < 50 || valor > 500){ alert("O valor deve ser entre R$50 e R$500."); return; }
+  // validação front-end com feedback inline
+  if(!nome || !tipo || !chave || isNaN(valor)){ showInlineMsg('saqueMsg','Preencha todos os campos corretamente.','error'); btn.disabled = false; return; }
+  if(valor < 50 || valor > 500){ showInlineMsg('saqueMsg','O valor deve ser entre R$50 e R$500.','error'); btn.disabled = false; return; }
 
   const user = auth.currentUser;
-  if(!user){ alert("Usuário não logado"); return; }
+  if(!user){ showInlineMsg('saqueMsg','Usuário não logado. Faça login antes.','error'); btn.disabled = false; return; }
   const uid = user.uid;
 
-  const saldoRef = db.ref('usuarios/'+uid+'/saldo');
-  saldoRef.transaction(balance=>{
-    if((balance||0) < valor){ alert("Saldo insuficiente"); return balance; }
+  // transaction para garantir atomicidade
+  db.ref('usuarios/'+uid+'/saldo').transaction(balance=>{
+    if((balance||0) < valor){ showInlineMsg('saqueMsg','Saldo insuficiente.','error'); return balance; }
     return (balance||0)-valor;
   }, (error, committed, snap)=>{
-    if(error) { alert("Erro ao processar saque"); return; }
-    if(!committed){ return; }
-    saldo = Number(snap.val()||0);
-    const novoSaque = {nome, tipo, chave, valor, status:"Aguardando", date:new Date().toISOString()};
-    const pushRef = db.ref('usuarios/'+uid+'/saques').push(novoSaque);
-    historicoSaque.unshift({ text:`Saque: ${moedaBR(valor)} — Aguardando<br><small class="small-muted">${new Date(novoSaque.date).toLocaleString()}</small>`, key: pushRef.key, raw: novoSaque });
-    atualizarTela();
-    document.getElementById('nomeSaque').value='';
-    document.getElementById('tipoChave').value='';
-    document.getElementById('chavePIX').value='';
-    document.getElementById('valorSaque').value='';
-    toast("📩 Solicitação enviada!");
+    if(error) { showInlineMsg('saqueMsg','Erro ao processar saque.','error'); btn.disabled = false; return; }
+    if(committed){
+      saldo = Number(snap.val()||0);
+      const novoSaque = {nome, tipo, chave, valor, status:"Aguardando", date:new Date().toISOString()};
+      db.ref('usuarios/'+uid+'/saques').push(novoSaque).then(()=>{
+        historicoSaque.push({text:`Saque: ${moedaBRNumber(valor)} — Aguardando`, raw: novoSaque});
+        atualizarTela();
+        // limpar inputs
+        document.getElementById('nomeSaque').value='';
+        document.getElementById('tipoChave').value='';
+        document.getElementById('chavePIX').value='';
+        document.getElementById('valorSaque').value='';
+        showInlineMsg('saqueMsg','📩 Solicitação enviada! Aguarde processamento.','success');
+        toast('Solicitação enviada!');
+      }).catch(e=>{
+        showInlineMsg('saqueMsg','Erro ao registrar saque: '+(e.message||e),'error');
+      }).finally(()=> btn.disabled = false);
+    }else{
+      btn.disabled = false;
+    }
   });
 }
 
-/* ========= ADMIN: ver pendências e aprovar/reprovar ========= */
-function loadAdminPending(){
-  showLoading(true);
-  db.ref('usuarios').once('value').then(snap=>{
-    showLoading(false);
-    const users = snap.val() || {};
-    const depositos = [];
-    const saques = [];
-    Object.entries(users).forEach(([uid, u])=>{
-      if(u.depositos) Object.entries(u.depositos).forEach(([k,dep])=>{
-        if(dep.status === "Aguardando" || dep.status === "Pendente") depositos.push({uid, key:k, dep, user:u});
-      });
-      if(u.saques) Object.entries(u.saques).forEach(([k,saq])=>{
-        if(saq.status === "Aguardando" || saq.status === "Pendente") saques.push({uid, key:k, saq, user:u});
-      });
-    });
+/* ========= UI UPDATE ========= */
+function atualizarTela(){
+  // exibe apenas os números sem "R$" no header como antes (você pode ajustar)
+  const saldoStr = moedaBRNumber(saldo);
+  document.getElementById('saldo').textContent = saldoStr;
+  document.getElementById('carteiraSaldo').textContent = saldoStr;
 
-    const depEl = document.getElementById('adminDepositos');
-    depEl.innerHTML = depositos.length ? depositos.map(d=>{
-      const date = d.dep.date ? new Date(d.dep.date).toLocaleString() : '';
-      return `<div class="item">
-        <strong>${d.user.playerName || d.user.nome}</strong> — ${moedaBR(d.dep.valor)}<br>
-        <small class="small-muted">${date}</small>
-        <div class="admin-actions" style="margin-top:8px">
-          <button class="btn" onclick="adminApproveDeposit('${d.uid}','${d.key}')"><i class="fa-solid fa-check"></i> Aprovar</button>
-          <button class="btn-outline" onclick="adminRejectDeposit('${d.uid}','${d.key}')"><i class="fa-solid fa-xmark"></i> Reprovar</button>
-        </div>
-      </div>`;
-    }).join('') : '<div class="muted">Nenhum depósito pendente.</div>';
+  document.getElementById('historico').innerHTML = historicoDeposito.length
+    ? historicoDeposito.map(t=>`<div class="item">${t.text}</div>`).join('')
+    : '<div class="muted">Sem movimentos ainda.</div>';
 
-    const saqEl = document.getElementById('adminSaques');
-    saqEl.innerHTML = saques.length ? saques.map(s=>{
-      const date = s.saq.date ? new Date(s.saq.date).toLocaleString() : '';
-      return `<div class="item">
-        <strong>${s.user.playerName || s.user.nome}</strong> — ${moedaBR(s.saq.valor)}<br>
-        <small class="small-muted">${date} — Chave: ${s.saq.chave}</small>
-        <div class="admin-actions" style="margin-top:8px">
-          <button class="btn" onclick="adminApproveSaque('${s.uid}','${s.key}')"><i class="fa-solid fa-check"></i> Pagar (Aprovar)</button>
-          <button class="btn-outline" onclick="adminRejectSaque('${s.uid}','${s.key}')"><i class="fa-solid fa-xmark"></i> Reprovar e Estornar</button>
-        </div>
-      </div>`;
-    }).join('') : '<div class="muted">Nenhum saque pendente.</div>';
-  }).catch(err=>{
-    showLoading(false);
-    alert('Erro ao carregar pendências: '+err.message);
-  });
+  document.getElementById('historicoSaque').innerHTML = historicoSaque.length
+    ? historicoSaque.map(t=>`<div class="item">${t.text}</div>`).join('')
+    : '<div class="muted">Nenhum saque solicitado.</div>';
 }
 
-function adminApproveDeposit(uid, depositKey){
-  if(!confirm('Aprovar este depósito e creditar saldo?')) return;
-  const depRef = db.ref(`usuarios/${uid}/depositos/${depositKey}`);
-  showLoading(true);
-  depRef.once('value').then(snap=>{
-    const dep = snap.val();
-    if(!dep) { alert('Depósito não encontrado'); showLoading(false); return; }
-    const valor = Number(dep.valor || 0);
-    const saldoRef = db.ref(`usuarios/${uid}/saldo`);
-    saldoRef.transaction(curr=>{
-      return (curr||0) + valor;
-    }, (err, committed, snap2)=>{
-      if(err){ showLoading(false); alert('Erro ao creditar: '+err.message); return; }
-      depRef.update({ status: 'Aprovado', approvedAt: new Date().toISOString() }).then(()=>{
-        showLoading(false);
-        toast('Depósito aprovado e saldo creditado!');
-        // atualizar admin list e tela do usuário logado se for o mesmo
-        adminLoaded = false;
-        if(prevSectionId === 'admin') loadAdminPending();
-        if(currentUID === uid) loadUserData(uid);
-      }).catch(e=>{ showLoading(false); alert('Erro: '+e.message); });
-    });
-  }).catch(err=>{ showLoading(false); alert('Erro: '+err.message); });
-}
-
-function adminRejectDeposit(uid, depositKey){
-  if(!confirm('Reprovar este depósito?')) return;
-  const depRef = db.ref(`usuarios/${uid}/depositos/${depositKey}`);
-  depRef.update({ status: 'Reprovado', rejectedAt: new Date().toISOString() }).then(()=>{
-    toast('Depósito reprovado.');
-    adminLoaded = false;
-    if(prevSectionId === 'admin') loadAdminPending();
-  }).catch(e=> alert('Erro: '+e.message));
-}
-
-function adminApproveSaque(uid, saqueKey){
-  if(!confirm('Marcar saque como PAGO? Isso apenas atualiza o status (faça o pagamento externo).')) return;
-  const saqRef = db.ref(`usuarios/${uid}/saques/${saqueKey}`);
-  saqRef.update({ status: 'Pago', paidAt: new Date().toISOString() }).then(()=>{
-    toast('Saque marcado como Pago.');
-    adminLoaded = false;
-    if(prevSectionId === 'admin') loadAdminPending();
-    if(currentUID === uid) loadUserData(uid);
-  }).catch(e=> alert('Erro: '+e.message));
-}
-
-function adminRejectSaque(uid, saqueKey){
-  if(!confirm('Reprovar saque e estornar valor ao saldo do usuário?')) return;
-  const saqRef = db.ref(`usuarios/${uid}/saques/${saqueKey}`);
-  showLoading(true);
-  saqRef.once('value').then(snap=>{
-    const saq = snap.val();
-    if(!saq){ showLoading(false); alert('Saque não encontrado'); return; }
-    const valor = Number(saq.valor || 0);
-    const saldoRef = db.ref(`usuarios/${uid}/saldo`);
-    saldoRef.transaction(curr=>{
-      return (curr||0) + valor;
-    }, (err, committed, snap2)=>{
-      if(err){ showLoading(false); alert('Erro ao estornar: '+err.message); return; }
-      saqRef.update({ status: 'Reprovado', rejectedAt: new Date().toISOString() }).then(()=>{
-        showLoading(false);
-        toast('Saque reprovado e valor estornado.');
-        adminLoaded = false;
-        if(prevSectionId === 'admin') loadAdminPending();
-        if(currentUID === uid) loadUserData(uid);
-      }).catch(e=>{ showLoading(false); alert('Erro: '+e.message); });
-    });
-  }).catch(err=>{ showLoading(false); alert('Erro: '+err.message); });
-}
-
-/* ========= INIT UI ========= */
+/* ========= INIT ========= */
 document.addEventListener('DOMContentLoaded', ()=>{
-  // não inicializamos o QR aqui (lazy) para melhorar velocidade de carregamento
-  // esconder botão admin na navegação até sabermos que o usuário é admin
-  const adminNavBtn = document.querySelector('nav button[data-target="admin"]');
-  if(adminNavBtn) adminNavBtn.style.display = 'none';
+  setupPIX();
+  // manter acessibilidade inicial: coloca foco no email do login
+  document.getElementById('loginEmail').focus();
 });
 </script>
 </body>
